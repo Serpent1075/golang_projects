@@ -1,0 +1,137 @@
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Getting Started with Chart JS with www.chartjs3.com</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        font-family: sans-serif;
+      }
+      .chartMenu p {
+        padding: 10px;
+        font-size: 20px;
+      }
+      .chartCard {
+        width: 100vw;
+        height: calc(100vh - 40px);
+        background: rgba(255, 255, 255);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .chartBox {
+        width: 700px;
+        padding: 20px;
+        border-radius: 5px;
+        border: solid 1px rgb(145, 145, 145);
+        background: white;
+      }
+    </style>
+  </head>
+  <body>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+    <div class="chartCard">
+      <div class="chartBox">
+        <canvas id="myChart"></canvas>
+        <br>
+        <canvas id="myChart2"></canvas>  <!--차트 추가시 추가 및 id 수정-->
+      </div>
+    </div>
+    
+    <script>
+    // setup <차트 추가시 line 48~93 복사 후 표시해 놓은 주석 위치 수정>
+    const data = {                                 // 추가시 'data' -> 'data1',2,3..등으로 수정
+      labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      datasets: [{
+        label: 'Weekly Sales',
+        data: [18, 12, 6, 9, 12, 3, 9],
+        backgroundColor: [
+          'rgba(255, 26, 104)'
+        ],
+        borderColor: [
+          'rgba(255, 26, 104)',
+        ],
+        borderWidth: 3
+      }]
+    };
+
+    // config 
+    const config = {               // 추가시 'config' -> 'config1',2,3..등으로 수정
+      type: 'line',
+      data,
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    };
+
+    // render init block
+    const myChart = new Chart(       // 추가시 'myChar' -> 'myChar1',2,3..등으로 수정
+      document.getElementById('myChart'),   // 추가시 'myChar' -> 'myChar1',2,3..등으로 수정, 바로 윗줄이랑 동일하게
+      config
+    );
+
+    //--------------------------------------------------
+
+
+    // setup 
+    const data2 = {
+      labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      datasets: [{
+        label: 'Test Sales',
+        data: [ 12, 6, 9, 12, 3, 9,18],
+        backgroundColor: [
+          'rgba(255, 26, 104, 0.2)',
+          'rgba(54, 162, 235, 0.2)',
+          'rgba(255, 206, 86, 0.2)',
+          'rgba(75, 192, 192, 0.2)',
+          'rgba(153, 102, 255, 0.2)',
+          'rgba(255, 159, 64, 0.2)',
+          'rgba(0, 0, 0, 0.2)'
+        ],
+        borderColor: [
+          'rgba(255, 26, 104, 1)',
+          'rgba(54, 162, 235, 1)',
+          'rgba(255, 206, 86, 1)',
+          'rgba(75, 192, 192, 1)',
+          'rgba(153, 102, 255, 1)',
+          'rgba(255, 159, 64, 1)',
+          'rgba(0, 0, 0, 1)'
+        ],
+        borderWidth: 1
+      }]
+    };
+
+    // config 
+    const config2 = {
+      type: 'line',
+      data: data2,
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    };
+
+    // render init block
+    const myChart2 = new Chart(
+      document.getElementById('myChart2'),
+      config2
+    );
+    
+  
+    </script>
+
+  </body>
+</html>

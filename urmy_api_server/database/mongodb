@@ -1,0 +1,4 @@
+db.usersignin.drop()
+db.friendlist.drop()
+db.friendlist.find({"host":"t0qxcSPXweeAKhW1evnlgZbt9P82"})
+db.usersignin.find({"useruid":"db3DtigjzoTkxGxFeZ35v9uAhJt2"})

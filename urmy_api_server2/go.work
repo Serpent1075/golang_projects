@@ -1,0 +1,8 @@
+go 1.19
+
+use (
+	./urmy_rest_config
+	./urmy_rest_gateway
+	./urmy_rest_handler
+	./urmy_rest_saju
+)
