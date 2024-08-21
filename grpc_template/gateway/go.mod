@@ -3,7 +3,7 @@ module example.com
 go 1.23.0
 
 require (
-	github.com/Serpent1075/proto_example v0.0.0-20240820134847-05f6b3e8b7ad // indirect
+	github.com/Serpent1075/proto_example v0.0.1 // indirect
 	github.com/bytedance/sonic v1.11.6 // indirect
 	github.com/bytedance/sonic/loader v0.1.1 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect

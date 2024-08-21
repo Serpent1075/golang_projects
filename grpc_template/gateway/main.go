@@ -1,10 +1,15 @@
 package main
 
 import (
+	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"time"
 
+	bidirectionpb "github.com/Serpent1075/proto_example/pb/bidirectionrpc"
+	clientpb "github.com/Serpent1075/proto_example/pb/clientrpc"
+	serverpb "github.com/Serpent1075/proto_example/pb/serverrpc"
 	unarypb "github.com/Serpent1075/proto_example/pb/unaryrpc"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -65,7 +70,7 @@ func unary_RPC(c *gin.Context) {
 
 	defer conn.Close()
 	pbc := unarypb.NewUnaryServiceClient(conn)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(c, time.Second)
 	defer cancel()
 	r, err := pbc.UnaryCall(ctx, &unarypb.UnaryRequest{Message: u.Name})
 	if err != nil {
@@ -85,6 +90,34 @@ func server_stream_RPC(c *gin.Context) {
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
+
+	conn, err := grpc.NewClient("localhost:50052", grpc.EmptyDialOption{})
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+
+	defer conn.Close()
+
+	pbc := serverpb.NewServerServiceClient(conn)
+
+	ctx, cancel := context.WithTimeout(c, time.Second)
+	defer cancel()
+
+	stream, err := pbc.ServerStreamingCall(ctx, &serverpb.StreamingRequest{Message: "Stream from client"})
+	if err != nil {
+		log.Fatalf("could not get stream: %v", err)
+	}
+	for {
+		response, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatalf("error while reading stream: %v", err)
+		}
+		log.Printf("Response from stream: %s", response.GetMessage())
+	}
+
 	log.Println(u.Name)
 	c.JSON(200, gin.H{
 		"message": "server_stream_RPC",
@@ -98,7 +131,35 @@ func client_stream_RPC(c *gin.Context) {
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
-	log.Println(u.Name)
+
+	conn, err := grpc.NewClient("localhost:50053", grpc.EmptyDialOption{})
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+
+	defer conn.Close()
+
+	pbc := clientpb.NewClientServiceClient(conn)
+
+	ctx, cancel := context.WithTimeout(c, time.Second)
+	defer cancel()
+
+	stream, err := pbc.ClientStreamingCall(ctx)
+	if err != nil {
+		log.Fatalf("could not get stream: %v", err)
+	}
+	for i := 0; i < 5; i++ {
+		if err := stream.Send(&clientpb.StreamingRequest{Message: fmt.Sprintf("Client message %d", i)}); err != nil {
+			log.Fatalf("error while sending: %v", err)
+		}
+		time.Sleep(time.Second)
+	}
+	reply, err := stream.CloseAndRecv()
+	if err != nil {
+		log.Fatalf("error while receiving: %v", err)
+	}
+	log.Printf("Client streaming response: %s", reply.GetMessage())
+
 	c.JSON(200, gin.H{
 		"message": "client_stream_RPC",
 	})
@@ -111,7 +172,52 @@ func bidirectional_stream_RPC(c *gin.Context) {
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
+
 	log.Println(u.Name)
+
+	conn, err := grpc.NewClient("localhost:50053", grpc.EmptyDialOption{})
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+
+	defer conn.Close()
+
+	pbc := bidirectionpb.NewBidirectionServiceClient(conn) // c 변수 정의
+
+	ctx, cancel := context.WithTimeout(c, time.Second)
+	defer cancel()
+
+	stream, err := pbc.BidirectionStreamingCall(ctx)
+	if err != nil {
+		log.Fatalf("could not get stream: %v", err)
+	}
+
+	go func() {
+		for {
+			in, err := stream.Recv()
+			if err == io.EOF {
+				// 서버 스트림 종료
+				return
+			}
+			if err != nil {
+				log.Fatalf("Error receiving from server: %v", err)
+			}
+			log.Printf("Received from server: %s", in.GetMessage())
+		}
+	}()
+
+	// 클라이언트에서 서버로 메시지 보내기
+	for i := 0; i < 5; i++ {
+		if err := stream.Send(&bidirectionpb.StreamingRequest{Message: fmt.Sprintf("Client message %d", i)}); err != nil {
+			log.Fatalf("Error sending to server: %v", err)
+		}
+		time.Sleep(time.Second)
+	}
+	stream.CloseSend() // 클라이언트 스트림 종료
+
+	// 서버 스트림이 완전히 닫힐 때까지 대기 (선택 사항)
+	<-ctx.Done()
+
 	c.JSON(200, gin.H{
 		"message": "bidirectional_stream_RPC",
 	})
