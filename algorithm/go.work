@@ -15,4 +15,5 @@ use (
 	./lec06_memoization
 	./lec07_tabulation
 	./lec08_cumulative_sum
+	./lec09_pattern_delete
 )
